@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard – COGGrande RollCall</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 30px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    select, button {
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #4facfe;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>COGGrande RollCall – Admin Dashboard</h2>
+
+  <div class="filters">
+    <select id="department">
+      <option value="All">All Departments</option>
+      <option value="COG">COG</option>
+      <option value="Administration">Administration</option>
+    </select>
+
+    <select id="quarter">
+      <option value="All">All Quarters</option>
+      <option value="Q1">Q1</option>
+      <option value="Q2">Q2</option>
+      <option value="Q3">Q3</option>
+      <option value="Q4">Q4</option>
+    </select>
+
+    <button onclick="loadAttendance()">Filter</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Department</th>
+        <th>Quarter</th>
+        <th>Date</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="attendanceTable"></tbody>
+  </table>
+
+  <script>
+    async function loadAttendance() {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Admin not logged in");
+        return;
+      }
+
+      const department = document.getElementById("department").value;
+      const quarter = document.getElementById("quarter").value;
+
+      const response = await fetch(
+        `/api/admin/attendance?department=${department}&quarter=${quarter}`,
+        {
+          headers: {
+            "Authorization": "Bearer " + token
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message);
+        return;
+      }
+
+      const table = document.getElementById("attendanceTable");
+      table.innerHTML = "";
+
+      if (data.length === 0) {
+        table.innerHTML = `
+          <tr>
+            <td colspan="5">No records found</td>
+          </tr>
+        `;
+        return;
+      }
+
+      data.forEach(record => {
+        table.innerHTML += `
+          <tr>
+            <td>${record.username}</td>
+            <td>${record.department}</td>
+            <td>${record.quarter}</td>
+            <td>${record.date}</td>
+            <td>${record.time}</td>
+          </tr>
+        `;
+      });
+    }
+  </script>
+
+</body>
+</html>
